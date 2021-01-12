@@ -1,19 +1,20 @@
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
-const expressHbs = require('express-handlebars');
+// const expressHbs = require('express-handlebars');
 
 const app = express();
 
  // for register engine handlebars
-app.engine(
-    'hbs', 
-    expressHbs({
-        layoutsDir: 'views/layouts/', defaultLayout: 'main-layout',
-        extname: 'hbs' // for register main-layout.hbs
-    })
-);
-app.set('view engine', 'hbs'); // set engine template
+// app.engine(
+//     'hbs', 
+//     expressHbs({
+//         layoutsDir: 'views/layouts/', defaultLayout: 'main-layout',
+//         extname: 'hbs' // for register main-layout.hbs
+//     })
+// );
+
+app.set('view engine', 'ejs'); // set engine template
 app.set('views', 'views'); // this set default
 
 const adminData = require('./routes/admin');
