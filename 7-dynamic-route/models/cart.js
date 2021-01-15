@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const p = path.join(
-  path.dirname(process.mainModule.filename),
+  path.dirname(require.main.filename),
   'data',
   'cart.json'
 );
@@ -15,6 +15,7 @@ module.exports = class Cart {
       if (!err) {
         cart = JSON.parse(fileContent);
       }
+      console.log('cart:', cart);
       // Analyze the cart => Find existing product
       const existingProductIndex = cart.products.findIndex(
         prod => prod.id === id

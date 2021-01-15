@@ -1,10 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-
 const Cart = require('./cart');
 
 const p = path.join(
-  path.dirname(process.mainModule.filename),
+  path.dirname(require.main.filename),
   'data',
   'products.json'
 );
@@ -30,11 +29,12 @@ module.exports = class Product {
 
   save() {
     getProductsFromFile(products => {
+      console.log(products);
       if (this.id) {
         const existingProductIndex = products.findIndex(
           prod => prod.id === this.id
         );
-        const updatedProducts = [...products];
+        const updatedProducts = products; //[...products]
         updatedProducts[existingProductIndex] = this;
         fs.writeFile(p, JSON.stringify(updatedProducts), err => {
           console.log(err);
