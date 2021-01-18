@@ -14,13 +14,13 @@ class Product {
   save() {
     const db = getDb();
     let dbOp;
-    if(this._id) {
-      // Update product
-      dbOp = db.collection('products').updateOne({_id: this._id}, {$set: this});
+    if (this._id) {
+      // Update the product
+      dbOp = db
+        .collection('products')
+        .updateOne({ _id: this._id }, { $set: this });
     } else {
-      // Insert product
-      dbOp = db.collection('products')
-      .insertOne(this);
+      dbOp = db.collection('products').insertOne(this);
     }
     return dbOp
       .then(result => {
@@ -33,9 +33,12 @@ class Product {
 
   static fetchAll() {
     const db = getDb();
-    return db.collection('products').find().toArray()
+    return db
+      .collection('products')
+      .find()
+      .toArray()
       .then(products => {
-        // console.log(products);
+        console.log(products);
         return products;
       })
       .catch(err => {
@@ -45,8 +48,9 @@ class Product {
 
   static findById(prodId) {
     const db = getDb();
-    return db.collection('products')
-      .find({_id: new mongodb.ObjectId(prodId)})
+    return db
+      .collection('products')
+      .find({ _id: new mongodb.ObjectId(prodId) })
       .next()
       .then(product => {
         console.log(product);
@@ -54,20 +58,21 @@ class Product {
       })
       .catch(err => {
         console.log(err);
-      })
+      });
   }
 
   static deleteById(prodId) {
     const db = getDb();
-    return db.collection('products').deleteOne({_id: new mongodb.ObjectId(prodId)})
-      .then(() => {
+    return db
+      .collection('products')
+      .deleteOne({ _id: new mongodb.ObjectId(prodId) })
+      .then(result => {
         console.log('Deleted');
       })
       .catch(err => {
         console.log(err);
-      })
+      });
   }
 }
-
 
 module.exports = Product;
