@@ -1,20 +1,16 @@
-const path = require('path');
-
+// import third pacakge
 const express = require('express');
-const { body } = require('express-validator/check');
+const { body } = require('express-validator');
 
+// import controller & middleware
 const adminController = require('../controllers/admin');
 const isAuth = require('../middleware/is-auth');
 
+// define routes
 const router = express.Router();
 
-// /admin/add-product => GET
 router.get('/add-product', isAuth, adminController.getAddProduct);
 
-// /admin/products => GET
-router.get('/products', isAuth, adminController.getProducts);
-
-// /admin/add-product => POST
 router.post(
   '/add-product',
   [
@@ -30,6 +26,8 @@ router.post(
   isAuth,
   adminController.postAddProduct
 );
+
+router.get('/products', isAuth, adminController.getProducts);
 
 router.get('/edit-product/:productId', isAuth, adminController.getEditProduct);
 

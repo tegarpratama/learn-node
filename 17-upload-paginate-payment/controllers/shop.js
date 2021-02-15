@@ -11,7 +11,7 @@ const Product = require('../models/product');
 const Order = require('../models/order');
 
 // items per page
-const ITEMS_PER_PAGE = 2;
+const ITEMS_PER_PAGE = 1;
 
 exports.getIndex = (req, res, next) => {
   const page = +req.query.page || 1;
@@ -81,6 +81,7 @@ exports.getProducts = (req, res, next) => {
 
 exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
+
   Product.findById(prodId)
     .then(product => {
       res.render('shop/product-detail', {
@@ -95,8 +96,6 @@ exports.getProduct = (req, res, next) => {
       return next(error);
     });
 };
-
-
 
 exports.getCart = (req, res, next) => {
   req.user
@@ -119,12 +118,12 @@ exports.getCart = (req, res, next) => {
 
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
+
   Product.findById(prodId)
     .then(product => {
       return req.user.addToCart(product);
     })
-    .then(result => {
-      console.log(result);
+    .then(() => {
       res.redirect('/cart');
     })
     .catch(err => {
@@ -136,6 +135,7 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
+  
   req.user
     .removeFromCart(prodId)
     .then(result => {
@@ -148,79 +148,80 @@ exports.postCartDeleteProduct = (req, res, next) => {
     });
 };
 
-exports.getCheckout = (req, res, next) => {
-  let products;
-  let total = 0;
-  req.user
-    .populate('cart.items.productId')
-    .execPopulate()
-    .then(user => {
-      products = user.cart.items;
-      total = 0;
-      products.forEach(p => {
-        total += p.quantity * p.productId.price;
-      });
+// exports.getCheckout = (req, res, next) => {
+//   let products;
+//   let total = 0;
 
-      return stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: products.map(p => {
-          return {
-            name: p.productId.title,
-            description: p.productId.description,
-            amount: p.productId.price * 100,
-            currency: 'usd',
-            quantity: p.quantity
-          };
-        }),
-        success_url: req.protocol + '://' + req.get('host') + '/checkout/success', // => http://localhost:3000
-        cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel'
-      });
-    })
-    .then(session => {
-      res.render('shop/checkout', {
-        path: '/checkout',
-        pageTitle: 'Checkout',
-        products: products,
-        totalSum: total,
-        sessionId: session.id
-      });
-    })
-    .catch(err => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next(error);
-    });
-};
+//   req.user
+//     .populate('cart.items.productId')
+//     .execPopulate()
+//     .then(user => {
+//       products = user.cart.items;
+//       total = 0;
+//       products.forEach(p => {
+//         total += p.quantity * p.productId.price;
+//       });
 
-exports.getCheckoutSuccess = (req, res, next) => {
-  req.user
-    .populate('cart.items.productId')
-    .execPopulate()
-    .then(user => {
-      const products = user.cart.items.map(i => {
-        return { quantity: i.quantity, product: { ...i.productId._doc } };
-      });
-      const order = new Order({
-        user: {
-          email: req.user.email,
-          userId: req.user
-        },
-        products: products
-      });
-      return order.save();
-    })
-    .then(result => {
-      return req.user.clearCart();
-    })
-    .then(() => {
-      res.redirect('/orders');
-    })
-    .catch(err => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next(error);
-    });
-};
+//       // return stripe.checkout.sessions.create({
+//       //   payment_method_types: ['card'],
+//       //   line_items: products.map(p => {
+//       //     return {
+//       //       name: p.productId.title,
+//       //       description: p.productId.description,
+//       //       amount: p.productId.price * 100,
+//       //       currency: 'usd',
+//       //       quantity: p.quantity
+//       //     };
+//       //   }),
+//       //   success_url: req.protocol + '://' + req.get('host') + '/checkout/success', // => http://localhost:3000
+//       //   cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel'
+//       // });
+//     })
+//     .then(session => {
+//       res.render('shop/checkout', {
+//         path: '/checkout',
+//         pageTitle: 'Checkout',
+//         products: products,
+//         totalSum: total,
+//         sessionId: session.id
+//       });
+//     })
+//     .catch(err => {
+//       const error = new Error(err);
+//       error.httpStatusCode = 500;
+//       return next(error);
+//     });
+// };
+
+// exports.getCheckoutSuccess = (req, res, next) => {
+//   req.user
+//     .populate('cart.items.productId')
+//     .execPopulate()
+//     .then(user => {
+//       const products = user.cart.items.map(i => {
+//         return { quantity: i.quantity, product: { ...i.productId._doc } };
+//       });
+//       const order = new Order({
+//         user: {
+//           email: req.user.email,
+//           userId: req.user
+//         },
+//         products: products
+//       });
+//       return order.save();
+//     })
+//     .then(result => {
+//       return req.user.clearCart();
+//     })
+//     .then(() => {
+//       res.redirect('/orders');
+//     })
+//     .catch(err => {
+//       const error = new Error(err);
+//       error.httpStatusCode = 500;
+//       return next(error);
+//     });
+// };
 
 exports.postOrder = (req, res, next) => {
   req.user
@@ -230,6 +231,7 @@ exports.postOrder = (req, res, next) => {
       const products = user.cart.items.map(i => {
         return { quantity: i.quantity, product: { ...i.productId._doc } };
       });
+
       const order = new Order({
         user: {
           email: req.user.email,
@@ -237,9 +239,10 @@ exports.postOrder = (req, res, next) => {
         },
         products: products
       });
+
       return order.save();
     })
-    .then(result => {
+    .then(() => {
       return req.user.clearCart();
     })
     .then(() => {
@@ -270,14 +273,17 @@ exports.getOrders = (req, res, next) => {
 
 exports.getInvoice = (req, res, next) => {
   const orderId = req.params.orderId;
+
   Order.findById(orderId)
     .then(order => {
       if (!order) {
         return next(new Error('No order found.'));
       }
+
       if (order.user.userId.toString() !== req.user._id.toString()) {
         return next(new Error('Unauthorized'));
       }
+      
       const invoiceName = 'invoice-' + orderId + '.pdf';
       const invoicePath = path.join('data', 'invoices', invoiceName);
 
