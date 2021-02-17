@@ -25,7 +25,7 @@ class Feed extends Component {
   componentDidMount() {
     fetch('http://localhost:8080/auth/status', {
       headers: {
-        Authorization: 'Bearer ' + this.props.token 
+        Authorization: 'Bearer ' + this.props.token
       }
     })
       .then(res => {
@@ -44,8 +44,10 @@ class Feed extends Component {
     socket.on('posts', data => {
       if (data.action === 'create') {
         this.addPost(data.post);
-      }else if(data.action === 'update') {
+      } else if (data.action === 'update') {
         this.updatePost(data.post);
+      } else if (data.action === 'delete') {
+        this.loadPosts();
       }
     });
   }
@@ -70,7 +72,7 @@ class Feed extends Component {
     this.setState(prevState => {
       const updatedPosts = [...prevState.posts];
       const updatedPostIndex = updatedPosts.findIndex(p => p._id === post._id);
-      if(updatedPostIndex > -1) {
+      if (updatedPostIndex > -1) {
         updatedPosts[updatedPostIndex] = post;
       }
       return {
@@ -121,7 +123,7 @@ class Feed extends Component {
   statusUpdateHandler = event => {
     event.preventDefault();
     fetch('http://localhost:8080/auth/status', {
-      method: 'PUT',
+      method: 'PATCH',
       headers: {
         Authorization: 'Bearer ' + this.props.token,
         'Content-Type': 'application/json'
@@ -170,7 +172,7 @@ class Feed extends Component {
     formData.append('content', postData.content);
     formData.append('image', postData.image);
     let url = 'http://localhost:8080/feed/post';
-    let method = 'POST'
+    let method = 'POST';
     if (this.state.editPost) {
       url = 'http://localhost:8080/feed/post/' + this.state.editPost._id;
       method = 'PUT';
@@ -178,7 +180,7 @@ class Feed extends Component {
 
     fetch(url, {
       method: method,
-      body: formData, 
+      body: formData,
       headers: {
         Authorization: 'Bearer ' + this.props.token
       }
@@ -190,6 +192,7 @@ class Feed extends Component {
         return res.json();
       })
       .then(resData => {
+        console.log(resData);
         const post = {
           _id: resData.post._id,
           title: resData.post.title,
@@ -236,10 +239,11 @@ class Feed extends Component {
       })
       .then(resData => {
         console.log(resData);
-        this.setState(prevState => {
-          const updatedPosts = prevState.posts.filter(p => p._id !== postId);
-          return { posts: updatedPosts, postsLoading: false };
-        });
+        this.loadPosts();
+        // this.setState(prevState => {
+        //   const updatedPosts = prevState.posts.filter(p => p._id !== postId);
+        //   return { posts: updatedPosts, postsLoading: false };
+        // });
       })
       .catch(err => {
         console.log(err);
